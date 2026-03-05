@@ -1,0 +1,7 @@
+.venv
+.idea
+.idea/
+main old.py
+lmdb_datasets
+lmdb_datasets/10104443
+__pycache__/lmdb_dataset.cpython-311.pyc
