@@ -8,6 +8,60 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import models, transforms
 from dotenv import load_dotenv
 from lmdb_dataset import LMDBDataset
+import torch
+import subprocess
+import shutil
+
+
+def get_device():
+    """
+    Определяет доступное устройство для вычислений.
+    Возвращает: torch.device и строку с информацией об устройстве
+    Поддерживает: NVIDIA CUDA, AMD ROCm, CPU
+    """
+
+    # Проверяем NVIDIA GPU через nvidia-smi (самый надёжный способ)
+    if shutil.which('nvidia-smi') is not None:
+        try:
+            result = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'],
+                                    capture_output=True, text=True, timeout=2)
+            if result.returncode == 0 and result.stdout.strip():
+                gpu_name = result.stdout.strip().split('\n')[0]
+                # Дополнительно проверяем через torch
+                if torch.cuda.is_available():
+                    return torch.device("cuda"), f"NVIDIA {gpu_name} (CUDA)"
+                else:
+                    return torch.device("cpu"), f"NVIDIA {gpu_name} (CUDA не доступна в PyTorch)"
+        except:
+            pass
+
+    # Проверяем AMD GPU (ROCm)
+    if torch.cuda.is_available() and hasattr(torch.version, 'hip') and torch.version.hip is not None:
+        try:
+            # Проверяем, что это действительно AMD через rocm-smi
+            if shutil.which('rocm-smi') is not None:
+                result = subprocess.run(['rocm-smi', '--showproductname'],
+                                        capture_output=True, text=True, timeout=2)
+                if result.returncode == 0:
+                    return torch.device("cuda"), f"AMD GPU (ROCm {torch.version.hip})"
+
+            # Альтернативная проверка через имя устройства
+            gpu_name = torch.cuda.get_device_name(0)
+            if 'amd' in gpu_name.lower() or 'radeon' in gpu_name.lower() or 'instinct' in gpu_name.lower():
+                return torch.device("cuda"), f"AMD {gpu_name} (ROCm {torch.version.hip})"
+        except:
+            pass
+
+    # Если CUDA доступна через torch, но не определена как NVIDIA или AMD
+    if torch.cuda.is_available():
+        try:
+            gpu_name = torch.cuda.get_device_name(0)
+            return torch.device("cuda"), f"{gpu_name} (CUDA)"
+        except:
+            return torch.device("cuda"), "Неизвестный GPU (CUDA)"
+
+    # Если ничего не найдено - используем CPU
+    return torch.device("cpu"), "CPU (GPU не обнаружены)"
 
 def train_model():
 
@@ -20,8 +74,9 @@ def train_model():
     resume_flag = os.getenv("RESUME_TRAINING", "False").lower() == "true"
 
     # Выбор устройства: GPU (cuda) или процессор (cpu)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"--- Работаем на: {device} ---")
+    device, device_info = get_device()
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"--- Работаем на: {device} ({device_info}) ---")
 
     # Трансформации: преобразуем картинку в понятный нейронке вид
     train_transforms = transforms.Compose([
