@@ -91,7 +91,7 @@ def train_model():
     num_classes = len(dataset.classes)
 
     # DataLoader берет данные из Dataset и подает их пачками
-    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 
     # Берем готовую архитектуру ResNet50 (условие с продолжением обучения)
     model = models.resnet50(weights='DEFAULT' if not resume_flag else None)
