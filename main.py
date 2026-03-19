@@ -67,6 +67,7 @@ def train_model():
 
     load_dotenv()
     input_db = os.getenv("DATASET_PATH")
+    print("input_db =", input_db)
     model_save_path = os.getenv("MODEL_PATH")
     batch_size = int(os.getenv("BATCH_SIZE", 32))
     epochs = int(os.getenv("EPOCHS", 5))
