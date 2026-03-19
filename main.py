@@ -11,6 +11,7 @@ from lmdb_dataset import LMDBDataset
 import torch
 import subprocess
 import shutil
+
 load_dotenv()
 
 def get_device():
@@ -63,10 +64,12 @@ def get_device():
     # Если ничего не найдено - используем CPU
     return torch.device("cpu"), "CPU (GPU не обнаружены)"
 
+
 def train_model():
     input_db = os.getenv("DATASET_PATH")
-    print("input_db =", input_db)
+    print("DATASET_PATH =", input_db)
     model_save_path = os.getenv("MODEL_PATH")
+    print("MODEL_PATH =", model_save_path)
     batch_size = int(os.getenv("BATCH_SIZE", 32))
     epochs = int(os.getenv("EPOCHS", 5))
     learning_rate = float(os.getenv("LEARNING_RATE", 0.001))
@@ -152,7 +155,7 @@ def train_model():
 
     print(f"✅ Обучение окончено. Модель сохранена в: {model_save_path}")
 
+
 if __name__ == "__main__":
     train_model()
 
-  
