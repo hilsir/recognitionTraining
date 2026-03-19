@@ -11,7 +11,7 @@ from lmdb_dataset import LMDBDataset
 import torch
 import subprocess
 import shutil
-
+load_dotenv()
 
 def get_device():
     """
@@ -64,8 +64,6 @@ def get_device():
     return torch.device("cpu"), "CPU (GPU не обнаружены)"
 
 def train_model():
-
-    load_dotenv()
     input_db = os.getenv("DATASET_PATH")
     print("input_db =", input_db)
     model_save_path = os.getenv("MODEL_PATH")
